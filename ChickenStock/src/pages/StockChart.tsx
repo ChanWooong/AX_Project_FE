@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from 'react';
 import { createChart, ColorType, CandlestickSeries } from 'lightweight-charts';
 
 const CHART_CONFIG = { 
-  width: 600,
   height: 400,
   layout: {
     background: { type: ColorType.Solid, color: '#ffffff' },
@@ -28,8 +27,16 @@ const StockChart: React.FC = () => {
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
-    const chart = createChart(chartContainerRef.current, CHART_CONFIG);
+    const container = chartContainerRef.current;
+    const chart = createChart(container, {
+      ...CHART_CONFIG,
+      width: container.clientWidth,
+    });
     const candlestickSeries = chart.addSeries(CandlestickSeries, SERIES_CONFIG);
+    const resizeObserver = new ResizeObserver(([entry]) => {
+      chart.applyOptions({ width: entry.contentRect.width});
+    });
+    resizeObserver.observe(container);
 
     // TEST
     let lastClose = 100;
@@ -52,8 +59,8 @@ const StockChart: React.FC = () => {
 
     // 백엔드 접목 이후
     /*
-    const SOCKET_URL = 'ws://localhost:8080'; // .env 파일에 설정
-    const socket = new WebSocket('{SOCKET_URL}/ws/stock');
+    const SOCKET_URL = import.meta.env.VITE_SOCKET_URL; // .env 파일에 설정
+    const socket = new WebSocket(`${SOCKET_URL}/ws/stock`);
 
     socket.onopen = () => {
       console.log('웹소켓 서버와 연결되었습니다.');
@@ -70,13 +77,14 @@ const StockChart: React.FC = () => {
     */
 
     return () => {
+      resizeObserver.disconnect()
       clearInterval(testInterval); 
       // socket.close();           
       chart.remove();             
     };
   }, []);
 
-  return <div ref={chartContainerRef} />;
+  return <div ref={chartContainerRef} style={{ width: '100%'}}/>;
 };
 
 export default StockChart;
