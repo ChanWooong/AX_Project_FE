@@ -1,42 +1,68 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css");
+
+/* 기본 초기화 (토스 폰트 적용) */
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: "Pretendard", sans-serif; }
+html, body, #root { width: 100%; height: 100%; background-color: #f2f4f6; color: #191f28; }
+
+/* 전체 화면 컨테이너 */
+.app-container {
+  display: flex; justify-content: center; align-items: stretch;
+  min-height: 100vh; padding: 20px 20px 40px;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* 메인 뼈대 (투명하게) */
+.white-background {
+  width: 100%; max-width: 1400px;
+  display: flex; flex-direction: column;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* ----- 헤더 영역 ----- */
+.header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 30px; padding: 10px 0;
+}
+.logo-box {
+  font-weight: 800; font-size: 1.6rem; color: #191f28; cursor: pointer;
+}
+.header-buttons { display: flex; gap: 12px; }
+.btn-pill {
+  background-color: #e8eaed; color: #4e5968; border: none; padding: 10px 20px;
+  border-radius: 12px; font-weight: 600; font-size: 0.95rem;
+  cursor: pointer; transition: background-color 0.2s ease;
+}
+.btn-pill:hover { background-color: #d1d6db; }
+
+/* ----- 메인 보드 (50:50 분할) ----- */
+.main-board {
+  display: flex; gap: 24px; flex: 1; overflow: hidden;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* 토스 스타일의 하얀색 카드 */
+.board-section {
+  flex: 1; background-color: #ffffff; border-radius: 24px; 
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+  display: flex; flex-direction: column; padding: 28px;
 }
 
-.card {
-  padding: 2em;
+.section-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 24px;
+}
+.title-pill {
+  font-size: 1.3rem; font-weight: 700; color: #191f28;
 }
 
-.read-the-docs {
-  color: #888;
+/* 토스 증권 스타일 퍼센트 (하락 파란색) */
+.title-pill.percent {
+  color: #3182f6; background-color: #e8f3ff; 
+  padding: 6px 12px; border-radius: 8px;
+  font-size: 1.1rem; font-weight: 600;
 }
+
+/* 차트/리포트 들어갈 안쪽 영역 */
+.content-area {
+  flex: 1; background-color: #f9fafb; border-radius: 16px; 
+  display: flex; justify-content: center; align-items: center;
+  font-size: 1.1rem; color: #8b95a1; font-weight: 500;
+}
+
