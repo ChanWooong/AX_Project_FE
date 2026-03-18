@@ -66,3 +66,73 @@ html, body, #root { width: 100%; height: 100%; background-color: #f2f4f6; color:
   font-size: 1.1rem; color: #8b95a1; font-weight: 500;
 }
 
+.user-profile-info {
+  background-color: #f2f4f6;
+  padding: 24px;
+  border-radius: 16px;
+  margin-bottom: 24px;
+}
+.user-profile-info p {
+  margin-bottom: 12px;
+  font-size: 1.05rem;
+  color: #4e5968;
+}
+.user-profile-info p:last-child {
+  margin-bottom: 0;
+}
+.user-profile-info strong {
+  color: #191f28;
+  margin-right: 8px;
+}
+
+.modal-overlay {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4); 
+  display: flex; justify-content: center; align-items: center; z-index: 1000;
+}
+.modal-content {
+  background-color: #ffffff; padding: 40px; border-radius: 24px;
+  width: 90%; max-width: 420px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+/* 폼 스타일 */
+.form-header {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;
+}
+.form-header h2 { font-size: 1.6rem; font-weight: 700; color: #191f28; }
+.btn-small {
+  background-color: #e8eaed; color: #4e5968; font-weight: 600;
+  border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.btn-small:hover { background-color: #d1d6db; }
+
+.input-group { margin-bottom: 20px; }
+.input-group label {
+  display: block; margin-bottom: 8px; font-size: 0.95rem; font-weight: 600; color: #4e5968;
+}
+.input-group input {
+  width: 100%; padding: 16px; border: none; border-radius: 12px;
+  background-color: #f2f4f6; font-family: inherit; font-size: 1rem; color: #191f28;
+  transition: all 0.2s ease;
+}
+.input-group input:focus {
+  outline: none; box-shadow: inset 0 0 0 2px #3182f6; background-color: #ffffff;
+}
+.pwd-hint {
+  display: block; font-size: 0.8rem; color: #8b95a1; margin-top: 8px; line-height: 1.4;
+}
+
+/* 액션 버튼 */
+.btn-submit {
+  width: 100%; padding: 18px; margin-top: 24px;
+  background-color: #3182f6; color: white; border: none; border-radius: 16px;
+  font-size: 1.2rem; font-weight: 700; cursor: pointer; transition: background-color 0.2s ease;
+}
+.btn-submit:hover { background-color: #1b64da; }
+
+/* 반응형 모바일 대응 */
+@media (max-width: 768px) {
+  .main-board { flex-direction: column; overflow-y: auto; }
+  .board-section { min-height: 400px; }
+}
