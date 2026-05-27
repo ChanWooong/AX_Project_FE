@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import axios from 'axios';
 
 interface AuthModalProps {
   onClose: () => void;
   onLoginSuccess: () => void; 
+  onLoginSuccess: () => void; 
 }
 
+export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
 export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
   const [isLoginView, setIsLoginView] = useState<boolean>(true);
   
@@ -90,13 +93,24 @@ export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
         {isLoginView ? (
           // --- 로그인 화면 ---
           <form className="form-container" onSubmit={handleSubmit}>
+          // --- 로그인 화면 ---
+          <form className="form-container" onSubmit={handleSubmit}>
             <div className="form-header">
               <h2>Login</h2>
+              <button type="button" className="btn-small" onClick={() => setIsLoginView(false)}>
               <button type="button" className="btn-small" onClick={() => setIsLoginView(false)}>
                 sign-up
               </button>
             </div>
             <div className="input-group">
+              <label>학번 (ID)</label>
+              <input 
+                type="text" 
+                placeholder="학번을 입력하세요" 
+                value={id}
+                onChange={(e) => setId(e.target.value)}
+                required
+              />
               <label>학번 (ID)</label>
               <input 
                 type="text" 
@@ -118,11 +132,16 @@ export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
             </div>
             <button type="submit" className="btn-submit">login</button>
           </form>
+            <button type="submit" className="btn-submit">login</button>
+          </form>
         ) : (
+          // --- 회원가입 화면 ---
+          <form className="form-container" onSubmit={handleSubmit}>
           // --- 회원가입 화면 ---
           <form className="form-container" onSubmit={handleSubmit}>
             <div className="form-header">
               <h2>Sign-up</h2>
+              <button type="button" className="btn-small" onClick={() => setIsLoginView(true)}>
               <button type="button" className="btn-small" onClick={() => setIsLoginView(true)}>
                 back to login
               </button>
@@ -170,6 +189,8 @@ export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
                 required
               />
             </div>
+            <button type="submit" className="btn-submit">register</button>
+          </form>
             <button type="submit" className="btn-submit">register</button>
           </form>
         )}
