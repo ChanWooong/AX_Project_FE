@@ -4,27 +4,22 @@ import { Client } from '@stomp/stompjs';
 
 const CHART_CONFIG = {
   height: 400,
-  layout: {
-    background: { type: ColorType.Solid, color: '#ffffff' },
-    textColor: '#333',
-  },
-  grid: {
-    vertLines: { color: '#f0f3fa' },
-    horzLines: { color: '#f0f3fa' },
-  },
+  layout: { background: { type: ColorType.Solid, color: '#ffffff' }, textColor: '#333' },
+  grid: { vertLines: { color: '#f0f3fa' }, horzLines: { color: '#f0f3fa' } },
 } as const;
 
 const SERIES_CONFIG = {
-  upColor: '#ef5350',
-  downColor: '#26a69a',
-  borderVisible: false,
-  wickUpColor: '#ef5350',
-  wickDownColor: '#26a69a',
+  upColor: '#ef5350', downColor: '#26a69a', borderVisible: false,
+  wickUpColor: '#ef5350', wickDownColor: '#26a69a',
 } as const;
 
+<<<<<<< HEAD
+interface StockChartProps { targetStock: string; }
+=======
 interface StockChartProps {
   targetStock: string;
 }
+>>>>>>> 95ba919a38fa8eca654ddbfc541aa044c0b62a19
 
 const StockChart: React.FC<StockChartProps> = ({ targetStock }) => {
   const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -32,22 +27,21 @@ const StockChart: React.FC<StockChartProps> = ({ targetStock }) => {
   useEffect(() => {
     if (!chartContainerRef.current) return;
     const container = chartContainerRef.current;
-
-    const chart = createChart(container, {
-      ...CHART_CONFIG,
-      width: container.clientWidth || 600,
-    });
+    const chart = createChart(container, { ...CHART_CONFIG, width: container.clientWidth || 600 });
     const candlestickSeries = chart.addSeries(CandlestickSeries, SERIES_CONFIG);
 
     const resizeObserver = new ResizeObserver(([entry]) => {
-      if (entry.contentRect.width > 0) {
-        chart.applyOptions({ width: entry.contentRect.width });
-      }
+      if (entry.contentRect.width > 0) chart.applyOptions({ width: entry.contentRect.width });
     });
     resizeObserver.observe(container);
 
     let client: Client | null = null;
 
+<<<<<<< HEAD
+    // 💡 1. 밀리초(/1000) 나누기 제거 (백엔드가 이미 초 단위로 전송함)
+    const getRoundedTime = (rawTime: number) => {
+      return (rawTime - (rawTime % 60)) as Time;
+=======
     // 타임스탬프를 1분 단위(혹은 원하는 단위)로 정규화하는 헬퍼 함수
     const getRoundedTime = (rawTime: number) => {
       // 1. 백엔드 time이 밀리초(ms)라면 초(s) 단위로 변경 (lightweight-charts는 초 단위를 사용합니다)
@@ -56,14 +50,21 @@ const StockChart: React.FC<StockChartProps> = ({ targetStock }) => {
       
       // 2. 1분(60초) 단위로 내림하여 동일한 분 내에서는 같은 time 값을 가지게 함
       return (timeInSeconds - (timeInSeconds % 60)) as Time;
+>>>>>>> 95ba919a38fa8eca654ddbfc541aa044c0b62a19
     };
 
     const fetchInitialData = async () => {
       try {
-        // targetStock 동적 바인딩 및 환경변수 URL 사용
+        // 💡 2. URL 환경변수 사용
         const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/stock/${targetStock}`);
         if (response.ok) {
           const data = await response.json();
+<<<<<<< HEAD
+          candlestickSeries.setData([{
+            time: getRoundedTime(data.time),
+            open: data.open, high: data.high, low: data.low, close: data.close,
+          }]);
+=======
           
           const initialCandle = {
             time: getRoundedTime(data.time),
@@ -74,6 +75,7 @@ const StockChart: React.FC<StockChartProps> = ({ targetStock }) => {
           };
           
           candlestickSeries.setData([initialCandle] as any);
+>>>>>>> 95ba919a38fa8eca654ddbfc541aa044c0b62a19
         }
       } catch (error) {
         console.error('초기 데이터 로딩 실패:', error);
@@ -84,12 +86,17 @@ const StockChart: React.FC<StockChartProps> = ({ targetStock }) => {
 
     const connectWebSocket = () => {
       client = new Client({
+        // 💡 3. WebSocket URL 환경변수 사용
         brokerURL: import.meta.env.VITE_WS_BASE_URL,
         onConnect: () => {
-          console.log('STOMP 연결 성공');
-          // targetStock 동적 바인딩
           client?.subscribe(`/topic/stock/${targetStock}`, (message) => {
             const data = JSON.parse(message.body);
+<<<<<<< HEAD
+            candlestickSeries.update({
+              time: getRoundedTime(data.time),
+              open: data.open, high: data.high, low: data.low, close: data.close,
+            });
+=======
             
             const candle = {
               time: getRoundedTime(data.time), // 1분 단위로 고정된 시간값
@@ -99,10 +106,9 @@ const StockChart: React.FC<StockChartProps> = ({ targetStock }) => {
               close: data.close,
             };
             candlestickSeries.update(candle as any);
+>>>>>>> 95ba919a38fa8eca654ddbfc541aa044c0b62a19
           });
-        },
-        onDisconnect: () => console.log('STOMP 연결 종료'),
-        onStompError: (frame) => console.error('STOMP 에러:', frame),
+        }
       });
       client.activate();
     };

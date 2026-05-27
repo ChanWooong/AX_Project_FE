@@ -2,9 +2,10 @@ import React from 'react';
 
 interface MyPageModalProps {
   onClose: () => void;
+  onLogout: () => void; // 💡 Props 타입 추가
 }
 
-export default function MyPageModal({ onClose }: MyPageModalProps) {
+export default function MyPageModal({ onClose, onLogout }: MyPageModalProps) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -22,7 +23,8 @@ export default function MyPageModal({ onClose }: MyPageModalProps) {
         </div>
         
         {/* 로그아웃 등 액션 버튼 */}
-        <button className="btn-submit" onClick={onClose}>로그아웃</button>
+        {/* 💡 여기 수정: onClose 대신 onLogout 실행 */}
+        <button className="btn-submit" onClick={onLogout}>로그아웃</button>
         
       </div>
     </div>

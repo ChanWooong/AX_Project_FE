@@ -1,19 +1,22 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import axios from 'axios';
 
 interface AuthModalProps {
   onClose: () => void;
   onLoginSuccess: () => void; 
+  onLoginSuccess: () => void; 
 }
 
 export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
+export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
   const [isLoginView, setIsLoginView] = useState<boolean>(true);
   
-  // 💡 백엔드 DTO에 맞춰 State 이름과 종류를 변경했습니다.
-  const [id, setId] = useState<string>(''); // email -> id (학번)
-  const [name, setName] = useState<string>(''); // 이름 추가
+  // 백엔드 SignUpDto / SignInDto 규격에 맞춘 State
+  const [id, setId] = useState<string>(''); 
+  const [name, setName] = useState<string>(''); 
   const [password, setPassword] = useState<string>('');
-  const [checkPassword, setCheckPassword] = useState<string>(''); // 변수명 일치
+  const [checkPassword, setCheckPassword] = useState<string>(''); 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,17 +27,31 @@ export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
     }
 
     try {
-      // 💡 백엔드 주소 (상황에 맞게 수정: localhost 또는 EC2 IP)
-      const baseURL = 'http://13.209.15.204:8080'; 
+      // 환경변수가 없으면 기본 백엔드 EC2 주소 사용
+      const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://13.209.15.204:8080'; 
 
       if (isLoginView) {
-        // [로그인 요청] (로그인 API도 아이디와 비밀번호를 받을 것으로 예상)
+        // [로그인 요청] -> 백엔드의 MemberController.login() 호출
         const response = await axios.post(`${baseURL}/api/login`, {
           id: id, 
           password: password,
         });
         
-        const token = response.data.token; 
+        // 💡 백엔드 ResponseDto 구조 반영: response.data가 ResponseDto임
+        // 백엔드는 정상 성공 시 토큰을 객체 안에 담아 보냅니다.
+        const responseData = response.data;
+        
+        // ResponseDto의 필드나 TokenInfo의 accessToken 필드 매핑 검증
+        const token = responseData?.accessToken || responseData?.data?.accessToken; 
+        const grantType = responseData?.grantType || responseData?.data?.grantType || 'Bearer';
+        
+        if (!token) {
+          alert('ID 혹은 비밀번호가 틀렸거나, 인증에 실패했습니다.');
+          return;
+        }
+
+        // 이후 Authorization 헤더 보낼 때 표준 포맷인 "Bearer 토큰값" 형태로 보관하거나 
+        // 기존 규격대로 저장하려면 token 값만 깔끔하게 보관합니다.
         localStorage.setItem('accessToken', token);
         
         alert('로그인 성공!');
@@ -42,7 +59,7 @@ export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
         onClose(); 
 
       } else {
-        // [회원가입 요청] 💡 SignUpDto에 명시된 4가지 변수명을 정확히 보냅니다.
+        // [회원가입 요청] -> 백엔드의 MemberController.join() 호출
         await axios.post(`${baseURL}/api/join`, {
           id: id,
           name: name,
@@ -52,12 +69,21 @@ export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
 
         alert('회원가입이 완료되었습니다. 로그인해주세요!');
         setIsLoginView(true); 
+        setId('');
+        setName('');
         setPassword('');
         setCheckPassword('');
       }
     } catch (error: any) {
-      console.error(error);
-      alert(isLoginView ? '로그인에 실패했습니다.' : '회원가입에 실패했습니다.');
+      console.error("인증 에러 상세:", error);
+      
+      // 서버가 보내준 에러 메시지가 있다면 출력, 없으면 기본 메시지 출력
+      const serverMessage = error.response?.data?.message;
+      if (isLoginView) {
+        alert(serverMessage || '로그인에 실패했습니다. 학번과 비밀번호를 확인해주세요.');
+      } else {
+        alert(serverMessage || '회원가입에 실패했습니다. 입력 양식을 다시 확인해주세요.');
+      }
     }
   };
 
@@ -67,8 +93,11 @@ export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
         {isLoginView ? (
           // --- 로그인 화면 ---
           <form className="form-container" onSubmit={handleSubmit}>
+          // --- 로그인 화면 ---
+          <form className="form-container" onSubmit={handleSubmit}>
             <div className="form-header">
               <h2>Login</h2>
+              <button type="button" className="btn-small" onClick={() => setIsLoginView(false)}>
               <button type="button" className="btn-small" onClick={() => setIsLoginView(false)}>
                 sign-up
               </button>
@@ -82,11 +111,20 @@ export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
                 onChange={(e) => setId(e.target.value)}
                 required
               />
+              <label>학번 (ID)</label>
+              <input 
+                type="text" 
+                placeholder="학번을 입력하세요" 
+                value={id}
+                onChange={(e) => setId(e.target.value)}
+                required
+              />
             </div>
             <div className="input-group">
               <label>비밀번호</label>
               <input 
                 type="password" 
+                placeholder="비밀번호를 입력하세요"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -94,11 +132,16 @@ export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
             </div>
             <button type="submit" className="btn-submit">login</button>
           </form>
+            <button type="submit" className="btn-submit">login</button>
+          </form>
         ) : (
+          // --- 회원가입 화면 ---
+          <form className="form-container" onSubmit={handleSubmit}>
           // --- 회원가입 화면 ---
           <form className="form-container" onSubmit={handleSubmit}>
             <div className="form-header">
               <h2>Sign-up</h2>
+              <button type="button" className="btn-small" onClick={() => setIsLoginView(true)}>
               <button type="button" className="btn-small" onClick={() => setIsLoginView(true)}>
                 back to login
               </button>
@@ -113,7 +156,6 @@ export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
                 required
               />
             </div>
-            {/* 💡 이름 입력 필드 추가 */}
             <div className="input-group">
               <label>이름</label>
               <input 
@@ -128,6 +170,7 @@ export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
               <label>비밀번호</label>
               <input 
                 type="password"
+                placeholder="비밀번호를 설정하세요"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -140,11 +183,14 @@ export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
               <label>비밀번호 확인</label>
               <input 
                 type="password"
+                placeholder="비밀번호를 다시 한 번 입력하세요"
                 value={checkPassword}
                 onChange={(e) => setCheckPassword(e.target.value)}
                 required
               />
             </div>
+            <button type="submit" className="btn-submit">register</button>
+          </form>
             <button type="submit" className="btn-submit">register</button>
           </form>
         )}
