@@ -9,11 +9,10 @@ interface AuthModalProps {
 export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
   const [isLoginView, setIsLoginView] = useState<boolean>(true);
   
-  // 💡 백엔드 DTO에 맞춰 State 이름과 종류를 변경했습니다.
-  const [id, setId] = useState<string>(''); // email -> id (학번)
-  const [name, setName] = useState<string>(''); // 이름 추가
+  const [id, setId] = useState<string>(''); 
+  const [name, setName] = useState<string>(''); 
   const [password, setPassword] = useState<string>('');
-  const [checkPassword, setCheckPassword] = useState<string>(''); // 변수명 일치
+  const [checkPassword, setCheckPassword] = useState<string>(''); 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,17 +23,27 @@ export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
     }
 
     try {
-      // 💡 백엔드 주소 (상황에 맞게 수정: localhost 또는 EC2 IP)
-      const baseURL = 'http://13.209.15.204:8080'; 
+      const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://13.209.15.204:8080'; 
 
       if (isLoginView) {
-        // [로그인 요청] (로그인 API도 아이디와 비밀번호를 받을 것으로 예상)
-        const response = await axios.post(`${baseURL}/api/login`, {
-          id: id, 
-          password: password,
+        const params = new URLSearchParams();
+        params.append('id', id);
+        params.append('password', password);
+
+        const response = await axios.post(`${baseURL}/api/login`, params, {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          }
         });
         
-        const token = response.data.token; 
+        const responseData = response.data;
+        const token = responseData?.accessToken || responseData?.data?.accessToken || responseData?.token; 
+        
+        if (!token) {
+          alert('ID 혹은 비밀번호가 틀렸거나 인증 토큰을 받지 못했습니다.');
+          return;
+        }
+
         localStorage.setItem('accessToken', token);
         
         alert('로그인 성공!');
@@ -42,22 +51,35 @@ export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
         onClose(); 
 
       } else {
-        // [회원가입 요청] 💡 SignUpDto에 명시된 4가지 변수명을 정확히 보냅니다.
-        await axios.post(`${baseURL}/api/join`, {
-          id: id,
-          name: name,
-          password: password,
-          checkPassword: checkPassword
+        const params = new URLSearchParams();
+        params.append('id', id);
+        params.append('name', name);
+        params.append('password', password);
+        params.append('checkPassword', checkPassword);
+
+        await axios.post(`${baseURL}/api/join`, params, {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          }
         });
 
         alert('회원가입이 완료되었습니다. 로그인해주세요!');
         setIsLoginView(true); 
+        setId('');
+        setName('');
         setPassword('');
         setCheckPassword('');
       }
     } catch (error: any) {
-      console.error(error);
-      alert(isLoginView ? '로그인에 실패했습니다.' : '회원가입에 실패했습니다.');
+      console.error("인증 에러 상세:", error);
+      if (error.response) {
+        const serverMessage = error.response.data?.message || error.response.data;
+        alert(`서버 에러 (${error.response.status}): ${typeof serverMessage === 'string' ? serverMessage : '인증에 실패했습니다.'}`);
+      } else if (error.request) {
+        alert('서버로부터 응답을 받을 수 없습니다. 백엔드 서버 혹은 CORS 설정을 확인해 주세요.');
+      } else {
+        alert('요청 설정 중 에러가 발생했습니다.');
+      }
     }
   };
 
@@ -65,7 +87,6 @@ export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         {isLoginView ? (
-          // --- 로그인 화면 ---
           <form className="form-container" onSubmit={handleSubmit}>
             <div className="form-header">
               <h2>Login</h2>
@@ -87,6 +108,7 @@ export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
               <label>비밀번호</label>
               <input 
                 type="password" 
+                placeholder="비밀번호를 입력하세요"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -95,7 +117,6 @@ export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
             <button type="submit" className="btn-submit">login</button>
           </form>
         ) : (
-          // --- 회원가입 화면 ---
           <form className="form-container" onSubmit={handleSubmit}>
             <div className="form-header">
               <h2>Sign-up</h2>
@@ -113,7 +134,6 @@ export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
                 required
               />
             </div>
-            {/* 💡 이름 입력 필드 추가 */}
             <div className="input-group">
               <label>이름</label>
               <input 
@@ -128,6 +148,7 @@ export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
               <label>비밀번호</label>
               <input 
                 type="password"
+                placeholder="비밀번호를 설정하세요"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -140,6 +161,7 @@ export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
               <label>비밀번호 확인</label>
               <input 
                 type="password"
+                placeholder="비밀번호를 다시 한 번 입력하세요"
                 value={checkPassword}
                 onChange={(e) => setCheckPassword(e.target.value)}
                 required
